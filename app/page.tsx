@@ -1,3 +1,4 @@
+import { PokemonCard } from "@/components/pokemonCard";
 import { PokemonsDocument, PokemonsQuery, Query } from "@/gpl/graphql";
 import { urqlClient } from "@/lib/urql";
 import { registerUrql } from "@urql/next/rsc";
@@ -9,10 +10,7 @@ gql`
   query Pokemons {
     pokemons(first: 151) {
       id
-      number
-      name
-      types
-      image
+      ...PokemonCard
     }
   }
 `;
@@ -35,25 +33,7 @@ export default async function Home() {
           }
           return (
             <li key={pokemon.id} className="p-4 bg-slate-100 rounded">
-              <Link href={`/pokemon/${pokemon.id}`}>
-                <div className="aspect-square relative w-full">
-                  <Image
-                    className="object-fit"
-                    src={pokemon.image ?? ""}
-                    fill
-                    sizes="(max-width: 425px) 100vw, (max-width: 610px) 50vw, (max-width: 800px) 33vw, 25vw"
-                    alt=""
-                  />
-                </div>
-                <h2>{pokemon.name}</h2>
-                <span>#{pokemon.number}</span>
-                <div className="flex gap-2">
-                  {pokemon.types &&
-                    pokemon.types.map((type) => {
-                      return <span key={type}>{type}</span>;
-                    })}
-                </div>
-              </Link>
+              <PokemonCard fragmentData={pokemon} />
             </li>
           );
         })}
