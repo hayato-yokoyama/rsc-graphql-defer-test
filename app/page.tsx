@@ -1,33 +1,62 @@
+import { PokemonsDocument, PokemonsQuery, Query } from "@/gpl/graphql";
+import { urqlClient } from "@/lib/urql";
 import { registerUrql } from "@urql/next/rsc";
-import { cacheExchange, createClient, fetchExchange, gql } from "urql";
+import Image from "next/image";
+import Link from "next/link";
+import { gql } from "urql";
 
-const PokemonsQuery = gql`
-  query {
-    pokemons(limit: 10) {
+gql`
+  query Pokemons {
+    pokemons(first: 151) {
       id
+      number
       name
+      types
+      image
     }
   }
 `;
 
-const makeClient = () => {
-  return createClient({
-    url: "https://trygql.formidable.dev/graphql/basic-pokedex",
-    exchanges: [cacheExchange, fetchExchange],
-  });
-};
-
-const { getClient } = registerUrql(makeClient);
+const { getClient } = registerUrql(urqlClient);
 
 export default async function Home() {
-  const result = await getClient().query(PokemonsQuery, {});
+  const result = await getClient().query<PokemonsQuery>(PokemonsDocument, {});
+
+  if (!result.data?.pokemons) {
+    return <p>データが取得できませんでした</p>;
+  }
+
   return (
     <main>
-      <h1>This is rendered as part of an RSC</h1>
-      <ul>
-        {result.data.pokemons.map((x: any) => (
-          <li key={x.id}>{x.name}</li>
-        ))}
+      <ul className="grid grid-cols-4 gap-4">
+        {result.data.pokemons.map((pokemon) => {
+          if (!pokemon) {
+            return null;
+          }
+          return (
+            <li key={pokemon.id} className="p-4 bg-slate-100 rounded">
+              <Link href={`/pokemon/${pokemon.id}`}>
+                <div className="aspect-square relative w-full">
+                  <Image
+                    className="object-fit"
+                    src={pokemon.image ?? ""}
+                    fill
+                    sizes="(max-width: 425px) 100vw, (max-width: 610px) 50vw, (max-width: 800px) 33vw, 25vw"
+                    alt=""
+                  />
+                </div>
+                <h2>{pokemon.name}</h2>
+                <span>#{pokemon.number}</span>
+                <div className="flex gap-2">
+                  {pokemon.types &&
+                    pokemon.types.map((type) => {
+                      return <span key={type}>{type}</span>;
+                    })}
+                </div>
+              </Link>
+            </li>
+          );
+        })}
       </ul>
     </main>
   );
