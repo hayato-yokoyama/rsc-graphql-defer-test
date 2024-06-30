@@ -1,14 +1,16 @@
 import { PokemonCard } from "@/components/pokemonCard";
-import { PokemonsDocument, PokemonsQuery, Query } from "@/gpl/graphql";
+import { PokemonsDocument, PokemonsQuery } from "@/gpl/graphql";
 import { urqlClient } from "@/lib/urql";
 import { registerUrql } from "@urql/next/rsc";
 import { gql } from "urql";
+import { Suspense } from "react";
 
+// deferでPokemonCardで使うデータを遅延読み込みしたいんだけど、 API側がdeferが有効じゃないとそもそもdeferが使えない（使ってもスルーされる）
 gql`
   query Pokemons {
     pokemons(first: 151) {
       id
-      ...PokemonCard
+      ...PokemonCard @defer
     }
   }
 `;
@@ -35,7 +37,9 @@ export default async function Home() {
           }
           return (
             <li key={pokemon.id} className="p-4 bg-slate-100 rounded">
-              <PokemonCard fragmentData={pokemon} />
+              <Suspense fallback={<div>Loading...</div>}>
+                <PokemonCard fragmentData={pokemon} />
+              </Suspense>
             </li>
           );
         })}
