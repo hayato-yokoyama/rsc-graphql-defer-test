@@ -2,8 +2,6 @@ import { PokemonCard } from "@/components/pokemonCard";
 import { PokemonsDocument, PokemonsQuery, Query } from "@/gpl/graphql";
 import { urqlClient } from "@/lib/urql";
 import { registerUrql } from "@urql/next/rsc";
-import Image from "next/image";
-import Link from "next/link";
 import { gql } from "urql";
 
 gql`
@@ -21,7 +19,11 @@ export default async function Home() {
   const result = await getClient().query<PokemonsQuery>(PokemonsDocument, {});
 
   if (!result.data?.pokemons) {
-    return <p>データが取得できませんでした</p>;
+    return (
+      <main>
+        <p>データが取得できませんでした</p>
+      </main>
+    );
   }
 
   return (
